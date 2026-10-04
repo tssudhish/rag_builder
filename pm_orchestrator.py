@@ -299,11 +299,13 @@ TASKS = {
         "description": "Package the Knowledge Graph as standardized tool definitions for external autonomous agents.",
         "target_files": [
             "rag_builder/agent_tools/__init__.py",
-            "rag_builder/agent_tools/langchain_tools.py"
+            "rag_builder/agent_tools/langchain_tools.py",
+            "tests/test_agent_tools.py"
         ],
         "acceptance_criteria": [
             "Callable tools for query_graph, get_entity_neighbors, search_triplets",
-            "Type-safe tool schemas"
+            "Type-safe tool schemas compatible with LangChain / function calling",
+            "Unit tests covering all tool execution and schema validation"
         ]
     },
     "task_5_2": {
