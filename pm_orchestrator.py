@@ -33,19 +33,66 @@ ARCHITECTURE_FILE = WORKSPACE / "ARCHITECTURE.md"
 
 def get_python_bin():
     """Resolves active Python executable in an environment-agnostic, portable manner."""
-    env_bin = os.environ.get("PYTHON_BIN")
-    if env_bin and Path(env_bin).exists():
-        return env_bin
+    if os.environ.get("PYTHON_BIN") and Path(os.environ["PYTHON_BIN"]).exists():
+        return os.environ["PYTHON_BIN"]
     if Path(sys.executable).exists() and "WindowsApps" not in sys.executable:
         return sys.executable
+    if os.environ.get("CONDA_PREFIX"):
+        conda_py = Path(os.environ["CONDA_PREFIX"]) / "python.exe"
+        if conda_py.exists():
+            return str(conda_py)
+    for candidate in [
+        r"D:\Users\tssud\miniconda3\python.exe",
+        Path.home() / "miniconda3" / "python.exe",
+        Path.home() / "anaconda3" / "python.exe",
+    ]:
+        if Path(candidate).exists():
+            return str(candidate)
     for name in ["python3", "python"]:
         found = shutil.which(name)
         if found and "WindowsApps" not in found:
             return found
     return sys.executable
 
-OPENCODE_EXE = os.environ.get("OPENCODE_EXE") or shutil.which("opencode") or "opencode"
-OLLAMA_EXE = os.environ.get("OLLAMA_EXE") or shutil.which("ollama") or "ollama"
+def get_opencode_bin():
+    """Resolves opencode CLI binary portably across operating systems."""
+    if os.environ.get("OPENCODE_EXE"):
+        return os.environ["OPENCODE_EXE"]
+    for name in ["opencode", "opencode.cmd", "opencode.exe"]:
+        found = shutil.which(name)
+        if found:
+            return found
+    appdata = os.environ.get("APPDATA", "")
+    candidates = [
+        r"D:\Users\tssud\AppData\Roaming\npm\node_modules\opencode-ai\bin\opencode.exe",
+        r"D:\Users\tssud\AppData\Roaming\npm\opencode.cmd",
+        Path(appdata) / "npm" / "node_modules" / "opencode-ai" / "bin" / "opencode.exe",
+        Path(appdata) / "npm" / "opencode.cmd",
+    ]
+    for c in candidates:
+        if c and Path(c).exists():
+            return str(c)
+    return "opencode"
+
+def get_ollama_bin():
+    """Resolves ollama CLI binary portably."""
+    if os.environ.get("OLLAMA_EXE"):
+        return os.environ["OLLAMA_EXE"]
+    found = shutil.which("ollama")
+    if found:
+        return found
+    localappdata = os.environ.get("LOCALAPPDATA", "")
+    candidates = [
+        Path(localappdata) / "Programs" / "Ollama" / "ollama.exe",
+        r"C:\Users\tssud\AppData\Local\Programs\Ollama\ollama.exe",
+    ]
+    for c in candidates:
+        if c and Path(c).exists():
+            return str(c)
+    return "ollama"
+
+OPENCODE_EXE = get_opencode_bin()
+OLLAMA_EXE = get_ollama_bin()
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_MODEL = "gemma4:31b-cloud"
 TRIPLEX_MODEL = "sciphi/triplex:latest"
@@ -125,7 +172,8 @@ TASKS = {
             "rag_builder/storage/__init__.py",
             "rag_builder/storage/base.py",
             "rag_builder/storage/neo4j_adapter.py",
-            "rag_builder/storage/memory_adapter.py"
+            "rag_builder/storage/memory_adapter.py",
+            "tests/test_storage.py"
         ],
         "acceptance_criteria": [
             "BaseGraphStorage interface defining insert_triplet, query_neighbors, get_stats",
