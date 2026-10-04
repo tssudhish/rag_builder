@@ -252,7 +252,8 @@ TASKS = {
         "description": "Use Ollama LLM to convert user questions into graph retrieval queries (Cypher / neighborhood lookups).",
         "target_files": [
             "rag_builder/rag/__init__.py",
-            "rag_builder/rag/query_generator.py"
+            "rag_builder/rag/query_generator.py",
+            "tests/test_query_generator.py"
         ],
         "acceptance_criteria": [
             "Converts natural language queries into target entities and query patterns",

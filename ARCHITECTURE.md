@@ -16,6 +16,7 @@ The application follows a pipeline architecture that transforms unstructured tex
 
 ### 3. Graph Storage Layer
 - **Graph Database**: Use of Neo4j or FalkorDB for native graph queries.
+- **Security**: Production deployments MUST configure a read-only database user at the DBMS engine level for all RAG retrieval operations to prevent accidental or malicious graph modifications.
 - **Vector Indexing**: Hybrid approach where nodes store embedding vectors for semantic search alongside structural links.
 
 ### 4. RAG Integration Layer
