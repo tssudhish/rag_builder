@@ -283,7 +283,7 @@ def query_ollama(prompt, model=DEFAULT_MODEL, system=None):
         return f"[Error connecting to Ollama at {OLLAMA_URL}: {e}]"
 
 
-def run_opencode_task(task_id, auto_approve=True):
+def run_opencode_task(task_id, auto_approve=True, feedback=None):
     """Dispatches a task prompt to the local coder agent using opencode."""
     task = TASKS[task_id]
     state = load_state()
@@ -304,6 +304,9 @@ def run_opencode_task(task_id, auto_approve=True):
         f"5. When done, output a summary of files created and key implementation details.\n"
     )
 
+    if feedback:
+        prompt += f"\n\nREVIEWER FEEDBACK / REVISION REQUIREMENTS:\n{feedback}\n"
+
     cmd = [
         OPENCODE_EXE,
         "run",
@@ -319,6 +322,7 @@ def run_opencode_task(task_id, auto_approve=True):
 
     result = subprocess.run(cmd, cwd=str(WORKSPACE), stdin=subprocess.DEVNULL)
     return result.returncode == 0
+
 
 
 def run_local_review(task_id):
@@ -478,6 +482,7 @@ def main():
 
     dispatch_p = subparsers.add_parser("dispatch", help="Dispatch task to Ollama coder agent")
     dispatch_p.add_argument("task_id", nargs="?", help="Task ID (default: active task)")
+    dispatch_p.add_argument("--feedback", help="Reviewer feedback or revision instructions to append to prompt")
 
     prompt_p = subparsers.add_parser("prompt", help="Display work packet prompt for a task")
     prompt_p.add_argument("task_id", nargs="?", help="Task ID (default: active task)")
@@ -513,8 +518,9 @@ def main():
         print("Acceptance Criteria:\n" + "\n".join(f"  - {c}" for c in t["acceptance_criteria"]))
     elif args.command == "dispatch":
         tid = args.task_id or active_tid
-        run_opencode_task(tid)
+        run_opencode_task(tid, feedback=args.feedback)
     elif args.command == "review":
+
         tid = args.task_id or active_tid
         run_local_review(tid)
     elif args.command == "test":
