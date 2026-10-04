@@ -1,7 +1,7 @@
 # Project Roadmap: RAG Knowledge Graph Builder
 
-## Phase 1: Core Extraction Engine [ ]
-- [ ] Implement document loaders (PDF, TXT, MD)
+## Phase 1: Core Extraction Engine [~]
+- [x] Implement document loaders (PDF, TXT, MD, HTML) & Text Splitter
 - [ ] Develop LLM-based entity and relationship extraction logic
 - [ ] Implement triplet generation (Subject -> Predicate -> Object)
 - [ ] Validation of extraction quality
