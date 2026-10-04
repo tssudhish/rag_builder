@@ -265,11 +265,14 @@ TASKS = {
         "title": "Sub-graph Retrieval (k-hop neighborhood)",
         "description": "Fetch target nodes and their k-hop neighbors with edge predicates to form structured context.",
         "target_files": [
-            "rag_builder/rag/retriever.py"
+            "rag_builder/rag/__init__.py",
+            "rag_builder/rag/retriever.py",
+            "tests/test_retriever.py"
         ],
         "acceptance_criteria": [
-            "Retrieves k-hop subgraphs with relevance scoring",
-            "Formats sub-graph into structured prompt context for LLM"
+            "Retrieves k-hop subgraphs with relevance scoring from BaseGraphStorage",
+            "Formats sub-graph into structured prompt context for LLM",
+            "Unit tests covering k-hop retrieval, depth limits, and prompt context formatting"
         ]
     },
     "task_4_3": {
