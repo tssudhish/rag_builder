@@ -48,6 +48,12 @@ coverage.xml
 .env.*
 !.env.example
 
+# Data and uploads
+data/
+data/uploads/
+*.json
+*.graph
+
 # IDE & OS files
 .vscode/
 .idea/

@@ -157,8 +157,47 @@ class MemoryGraphStorage(BaseGraphStorage):
             ))
         return triplets
 
+    def export_json(self, file_path: str) -> None:
+        """
+        Exports the current graph to a JSON file.
+        """
+        import json
+        triplets = self.get_all_triplets()
+        # Convert Triplet dataclasses to dicts for JSON serialization
+        data = [
+            {
+                "subject": t.subject,
+                "predicate": t.predicate,
+                "object": t.object,
+                "subject_properties": t.subject_properties,
+                "object_properties": t.object_properties,
+                "predicate_properties": t.predicate_properties,
+            }
+            for t in triplets
+        ]
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+
+    def import_json(self, file_path: str) -> None:
+        """
+        Imports triplets from a JSON file and populates the graph.
+        """
+        import json
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+        for item in data:
+            self.insert_triplet(Triplet(
+                subject=item["subject"],
+                predicate=item["predicate"],
+                object=item["object"],
+                subject_properties=item.get("subject_properties", {}),
+                object_properties=item.get("object_properties", {}),
+                predicate_properties=item.get("predicate_properties", {}),
+            ))
+
+
+
     def close(self) -> None:
         """No-op for in-memory storage."""
         pass
-
-

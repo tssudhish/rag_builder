@@ -94,7 +94,7 @@ def get_ollama_bin():
 OPENCODE_EXE = get_opencode_bin()
 OLLAMA_EXE = get_ollama_bin()
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-DEFAULT_MODEL = "gemma4:31b-cloud"
+DEFAULT_MODEL = os.environ.get("DEFAULT_MODEL", "qwen2.5-coder:1.5b")
 TRIPLEX_MODEL = "sciphi/triplex:latest"
 
 TASKS = {
@@ -413,8 +413,8 @@ def run_opencode_task(task_id, auto_approve=True, feedback=None):
 def run_local_review(task_id):
     """Invokes local Ollama agent to review generated code (0 Gemini tokens)."""
     task = TASKS[task_id]
-    git_diff = subprocess.run(["git", "diff"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
-    untracked = subprocess.run(["git", "status", "--short"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
+    git_diff = subprocess.run(["git", "diff"], cwd=str(WORKSPACE), capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
+    untracked = subprocess.run(["git", "status", "--short"], cwd=str(WORKSPACE), capture_output=True, text=True, encoding="utf-8", errors="replace").stdout
 
     files_to_review = list(task["target_files"])
     for line in untracked.splitlines():

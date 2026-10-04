@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-builder"
+version = "1.0.0"
+description = "A pipeline for building Knowledge Graphs for RAG"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "PyPDF2",
+    "beautifulsoup4",
+    "networkx",
+    "requests",
+    "ollama",
+]
+
+[project.scripts]
+rag-builder = "rag_builder.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

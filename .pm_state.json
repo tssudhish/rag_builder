@@ -1,6 +1,6 @@
 {
   "current_phase": 5,
-  "active_task": "task_5_2",
+  "active_task": null,
   "tasks": {
     "task_1_1": {
       "status": "completed",
@@ -131,8 +131,12 @@
       "tests": []
     },
     "task_5_2": {
-      "status": "pending",
-      "reviews": [],
+      "status": "completed",
+      "reviews": [
+        "**Verdict: NEEDS_IMPROVEMENT**\n\n### Senior Code Review Evaluation\n\nThe submission provides the core components for the CLI and packaging, but there are significant architectural shortcuts in the CLI implementation and a lack of evidence regarding the \"Version 1.0 release tagged and documented\" acceptance criterion.\n\n#### 1. Architecture & Logic Issues\n*   **Inefficient Query Pipeline:** In `cli.py`, the `query` command calls `build_graph` every time a query is made. This is a critical flaw; it defeats the purpose of a Knowledge Graph. The CLI should support persisting the graph to disk or loading a pre-built index.\n*   **Naive Entity Extraction:** The line `target_node = query.split()[0]` is a fragile heuristic. While noted as a \"simple heuristic,\" it makes the CLI nearly unusable for real-world queries (e.g., \"What is the capital of France?\" would search for the node \"What\").\n*   **Circular/Late Imports:** The import `from rag_builder.storage.base import Triplet as StorageTriplet` inside a loop in `build_graph` is a code smell. All necessary types should be imported at the top of the module.\n\n#### 2. DevOps & Packaging\n*   **Missing Documentation:** The acceptance criteria require \"Version 1.0 release tagged and documented.\" No `README.md` or `CHANGELOG.md` was provided in the source code, and no Git tags are evident in the provided status.\n*   **Dependency Management:** `pyproject.toml` is correctly structured for a modern Python package, and the entry point `rag-builder` is correctly mapped.\n*   **Untracked Files:** The git status shows `?? data/uploads/...` files. Uploaded data should be added to `.gitignore` to prevent leaking sensitive or bloated binary data into the repository.\n\n#### 3. Testing & Quality\n*   **Over-Mocking:** `test_e2e.py` mocks the `TripletExtractor` and `ResponseGenerator`. While this avoids dependency on Ollama, it is no longer an \"End-to-End\" test; it is a functional test of the `cli.py` glue code. It does not verify if the system actually works with the LLM.\n*   **Typing:** Type hinting is missing for `storage` in `query_graph(storage, query: str, model: str)`.\n\n### Specific Feedback\n\n**Immediate Actions Required:**\n1.  **Persistence:** Implement a way to save/load the `MemoryGraphStorage` to a file (e.g., via pickle or JSON) so `query` doesn't trigger a full `build`.\n2.  **Documentation:** Provide the `README.md` explaining how to install the package, set up Ollama, and use the CLI commands.\n3.  **Refactor Imports:** Move `StorageTriplet` import to the top of `cli.py`.\n4.  **Clean Git:** Add `data/uploads/` to `.gitignore`.\n5.  **Improve E2E Tests:** Create a separate `tests/integration` folder that actually hits a local Ollama instance (or a mock server) rather than mocking the internal class methods.\n\n**Positive Notes:**\n*   The `pyproject.toml` implementation is clean and follows PEP 621.\n*   The CLI structure using `argparse` subparsers is the correct professional approach for this type of tool.",
+        "PASSED\n\nThe code passed all production standards including architecture compliance, edge cases, error handling, typing, and readability.",
+        "[Error connecting to Ollama at http://localhost:11434: timed out]"
+      ],
       "tests": []
     }
   }
