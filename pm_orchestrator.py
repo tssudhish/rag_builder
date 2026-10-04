@@ -19,6 +19,12 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+# Ensure UTF-8 output on Windows consoles
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+
 WORKSPACE = Path(__file__).resolve().parent
 STATE_FILE = WORKSPACE / ".pm_state.json"
 ROADMAP_FILE = WORKSPACE / "ROADMAP.md"
@@ -331,8 +337,16 @@ def run_local_review(task_id):
     git_diff = subprocess.run(["git", "diff"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
     untracked = subprocess.run(["git", "status", "--short"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
 
+    files_to_review = list(task["target_files"])
+    for line in untracked.splitlines():
+        parts = line.strip().split()
+        if len(parts) >= 2:
+            path_part = parts[-1].replace("\\", "/")
+            if path_part.startswith("tests/") and path_part.endswith(".py") and path_part not in files_to_review:
+                files_to_review.append(path_part)
+
     files_content = []
-    for fpath_str in task["target_files"]:
+    for fpath_str in files_to_review:
         fpath = WORKSPACE / fpath_str
         if fpath.exists():
             try:
