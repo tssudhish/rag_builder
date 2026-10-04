@@ -280,12 +280,15 @@ TASKS = {
         "title": "Context-Aware Response Generation & Evaluation",
         "description": "Integrate context with LLM response generator and compare answer quality vs vector-only RAG.",
         "target_files": [
+            "rag_builder/rag/__init__.py",
             "rag_builder/rag/generator.py",
-            "rag_builder/rag/evaluator.py"
+            "rag_builder/rag/evaluator.py",
+            "tests/test_rag.py"
         ],
         "acceptance_criteria": [
-            "Produces grounded citations with entity & relationship evidence",
-            "Evaluation script measuring faithfulness and answer completeness"
+            "GraphRAG generator produces grounded responses with entity & relationship citations",
+            "Evaluator measures faithfulness and answer completeness vs baseline",
+            "Unit tests covering response generation, citation extraction, and evaluation metrics"
         ]
     },
 
