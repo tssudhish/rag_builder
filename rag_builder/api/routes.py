@@ -1,10 +1,11 @@
 import os
 import uuid
 import shutil
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, status
 from pydantic import BaseModel
 from rag_builder.api.state import app_state
+from rag_builder.api.visualizer import GraphVisualizer
 
 router = APIRouter(prefix="/api")
 
@@ -103,3 +104,15 @@ async def get_document_status(doc_id: str):
 async def get_graph_stats():
     stats = app_state.get_graph_stats()
     return GraphStatsResponse(**stats)
+
+@router.get("/graph/nodes-and-edges")
+async def get_graph_visualization(limit: int = 100):
+    """
+    Returns the graph in Cytoscape.js compatible format.
+    """
+    storage = app_state.get_storage()
+    if not storage:
+        # Return empty graph if no storage is initialized
+        return {"nodes": [], "edges": []}
+    
+    return GraphVisualizer.to_cytoscape_format(storage, limit=limit)

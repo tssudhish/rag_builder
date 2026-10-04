@@ -209,6 +209,31 @@ class Neo4jGraphStorage(BaseGraphStorage):
             logger.error(f"Error getting node degree from Neo4j: {e}")
             return {"in_degree": 0, "out_degree": 0}
 
+    def get_all_triplets(self) -> List[Triplet]:
+        """Returns all triplets currently stored in the Neo4j graph."""
+        query = (
+            "MATCH (s:Entity)-[r]->(o:Entity) "
+            "RETURN s.name as subject, type(r) as predicate, o.name as object, "
+            "properties(s) as s_props, properties(o) as o_props, properties(r) as r_props"
+        )
+        triplets = []
+        try:
+            with self._driver.session() as session:
+                result = session.run(query)
+                for record in result:
+                    triplets.append(Triplet(
+                        subject=record["subject"],
+                        predicate=record["predicate"],
+                        object=record["object"],
+                        subject_properties=record["s_props"],
+                        object_properties=record["o_props"],
+                        predicate_properties=record["r_props"]
+                    ))
+        except Exception as e:
+            logger.error(f"Error retrieving all triplets from Neo4j: {e}")
+            return []
+        return triplets
+
     def close(self) -> None:
         """Closes the Neo4j driver."""
         if self._driver:

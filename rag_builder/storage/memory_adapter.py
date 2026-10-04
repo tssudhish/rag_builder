@@ -139,6 +139,26 @@ class MemoryGraphStorage(BaseGraphStorage):
             "out_degree": self._graph.out_degree(node_id)
         }
 
+    def get_all_triplets(self) -> List[Triplet]:
+        """Returns all triplets currently stored in the memory graph."""
+        triplets = []
+        for u, v, data in self._graph.edges(data=True):
+            # Find properties for nodes
+            u_props = self._graph.nodes[u] if u in self._graph.nodes else {}
+            v_props = self._graph.nodes[v] if v in self._graph.nodes else {}
+            
+            triplets.append(Triplet(
+                subject=u,
+                predicate=data.get("predicate", "UNKNOWN"),
+                object=v,
+                subject_properties=u_props,
+                object_properties=v_props,
+                predicate_properties={k: v for k, v in data.items() if k != "predicate"}
+            ))
+        return triplets
+
     def close(self) -> None:
         """No-op for in-memory storage."""
         pass
+
+

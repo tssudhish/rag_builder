@@ -23,6 +23,7 @@ class AppState:
             "edge_count": 0,
             "last_updated": None
         }
+        self._storage = None  # Reference to the active BaseGraphStorage implementation
 
     def update_document_status(self, doc_id: str, filename: str = None, status: str = None, progress: float = None, error: str = None):
         with self._lock:
@@ -58,6 +59,14 @@ class AppState:
     def get_graph_stats(self) -> Dict[str, Any]:
         with self._lock:
             return self._graph_stats.copy()
+
+    def set_storage(self, storage):
+        with self._lock:
+            self._storage = storage
+
+    def get_storage(self):
+        with self._lock:
+            return self._storage
 
 # Global state instance
 app_state = AppState()

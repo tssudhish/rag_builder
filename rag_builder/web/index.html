@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Knowledge Graph Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Cytoscape.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Knowledge Graph Visualizer</h1>
+        <div id="error-banner" class="hidden"></div>
+    </header>
+
+    <main>
+        <div id="controls">
+            <button id="refresh-btn">Refresh Graph</button>
+            <span id="status-text">Loading graph...</span>
+        </div>
+        <div id="cy"></div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -236,7 +236,8 @@ TASKS = {
             "rag_builder/api/visualizer.py",
             "rag_builder/web/index.html",
             "rag_builder/web/app.js",
-            "rag_builder/web/style.css"
+            "rag_builder/web/style.css",
+            "tests/test_visualization.py"
         ],
         "acceptance_criteria": [
             "GET /api/graph/nodes-and-edges for UI visualization",

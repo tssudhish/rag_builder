@@ -84,6 +84,13 @@ class BaseGraphStorage(ABC):
         pass
 
     @abstractmethod
+    def get_all_triplets(self) -> List[Triplet]:
+        """
+        Returns all triplets currently stored in the graph.
+        """
+        pass
+
+    @abstractmethod
     def close(self) -> None:
         """Closes the database connection if applicable."""
         pass
