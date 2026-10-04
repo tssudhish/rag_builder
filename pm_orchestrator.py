@@ -386,12 +386,47 @@ def run_local_tests():
     return result.returncode == 0
 
 
-def approve_task(task_id):
-    """Marks task completed, updates ROADMAP.md, and commits to git."""
+def sync_git(push=True):
+    """Synchronizes repository with origin/main."""
+    print("\n[Project Manager] Synchronizing with remote repository...")
+    subprocess.run(["git", "pull", "--rebase", "origin", "main"], cwd=str(WORKSPACE), check=False)
+    if push:
+        res = subprocess.run(["git", "push", "origin", "main"], cwd=str(WORKSPACE))
+        if res.returncode == 0:
+            print("[Project Manager] Successfully synchronized with origin/main.")
+        else:
+            print("[Project Manager] Warning: git push returned non-zero code.")
+
+
+def cleanup_transient_files():
+    """Removes scratch test files created during development runs."""
+    for pattern in ["test_doc.*", "test_ingestion.py"]:
+        for f in WORKSPACE.glob(pattern):
+            try:
+                f.unlink()
+            except Exception:
+                pass
+
+
+def approve_task(task_id, auto_sync=True):
+    """Verifies tests, cleans scratch files, commits with conventional message, and synchronizes to remote."""
+    print(f"\n[Project Manager] Verifying deliverables for {task_id} before approval...")
+    
+    # 1. Verification gate: Tests must pass
+    if not run_local_tests():
+        print(f"\n❌ [Project Manager] ABORT: Test suite failed! Fix errors before approving {task_id}.")
+        return False
+
+    # 2. Clean scratch files
+    cleanup_transient_files()
+
     state = load_state()
     state["tasks"][task_id]["status"] = "completed"
 
-    # Find next task
+    task = TASKS[task_id]
+    phase_num = task["phase"]
+
+    # 3. Advance to next task
     task_keys = list(TASKS.keys())
     curr_idx = task_keys.index(task_id)
     if curr_idx + 1 < len(task_keys):
@@ -404,10 +439,18 @@ def approve_task(task_id):
 
     save_state(state)
 
-    # Git commit
+    # 4. Conventional Git commit
+    commit_msg = f"feat(phase{phase_num}): complete {task_id} - {task['title']}"
     subprocess.run(["git", "add", "."], cwd=str(WORKSPACE))
-    subprocess.run(["git", "commit", "-m", f"feat: complete {task_id} - {TASKS[task_id]['title']}"], cwd=str(WORKSPACE))
-    print(f"\n[Project Manager] Task {task_id} approved, committed, and advanced to {state.get('active_task')}.")
+    subprocess.run(["git", "commit", "-m", commit_msg], cwd=str(WORKSPACE))
+    print(f"\n[Project Manager] Task {task_id} committed ({commit_msg}).")
+
+    # 5. Remote synchronization
+    if auto_sync:
+        sync_git(push=True)
+
+    print(f"[Project Manager] Active milestone advanced to: {state.get('active_task')}.")
+    return True
 
 
 def print_status():
@@ -443,6 +486,7 @@ def main():
     review_p.add_argument("task_id", nargs="?", help="Task ID (default: active task)")
 
     subparsers.add_parser("test", help="Run local test suite")
+    subparsers.add_parser("sync", help="Synchronize with remote git repository")
 
     approve_p = subparsers.add_parser("approve", help="Approve task, commit code, and advance roadmap")
     approve_p.add_argument("task_id", nargs="?", help="Task ID (default: active task)")
@@ -457,6 +501,8 @@ def main():
     elif args.command == "list":
         for tid, tinfo in TASKS.items():
             print(f"{tid} (Phase {tinfo['phase']}): {tinfo['title']}")
+    elif args.command == "sync":
+        sync_git(push=True)
     elif args.command == "prompt":
         tid = args.task_id or active_tid
         t = TASKS[tid]
