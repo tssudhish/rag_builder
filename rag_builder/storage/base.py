@@ -54,6 +54,36 @@ class BaseGraphStorage(ABC):
         pass
 
     @abstractmethod
+    def get_all_predicates(self) -> Dict[str, int]:
+        """
+        Returns a distribution of all predicate types in the graph.
+        :return: Dict mapping predicate name to count.
+        """
+        pass
+
+    @abstractmethod
+    def get_connected_components(self) -> int:
+        """
+        Returns the number of connected components in the graph.
+        """
+        pass
+
+    @abstractmethod
+    def get_orphan_nodes(self) -> List[str]:
+        """
+        Returns a list of nodes that have no connected edges.
+        """
+        pass
+
+    @abstractmethod
+    def get_node_degree(self, node_id: str) -> Dict[str, int]:
+        """
+        Returns the in-degree and out-degree of a specific node.
+        :return: Dict containing 'in_degree' and 'out_degree'.
+        """
+        pass
+
+    @abstractmethod
     def close(self) -> None:
         """Closes the database connection if applicable."""
         pass

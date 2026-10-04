@@ -113,6 +113,32 @@ class MemoryGraphStorage(BaseGraphStorage):
             metadata={"backend": "NetworkX"}
         )
 
+    def get_all_predicates(self) -> Dict[str, int]:
+        """Returns a distribution of all predicate types in the memory graph."""
+        distribution = {}
+        for _, _, data in self._graph.edges(data=True):
+            pred = data.get("predicate", "UNKNOWN")
+            distribution[pred] = distribution.get(pred, 0) + 1
+        return distribution
+
+    def get_connected_components(self) -> int:
+        """Returns the number of connected components in the memory graph."""
+        undirected = self._graph.to_undirected()
+        return nx.number_connected_components(undirected)
+
+    def get_orphan_nodes(self) -> List[str]:
+        """Returns a list of nodes with no edges in the memory graph."""
+        return [node for node, degree in self._graph.degree() if degree == 0]
+
+    def get_node_degree(self, node_id: str) -> Dict[str, int]:
+        """Returns the in-degree and out-degree of a node in the memory graph."""
+        if node_id not in self._graph:
+            return {"in_degree": 0, "out_degree": 0}
+        return {
+            "in_degree": self._graph.in_degree(node_id),
+            "out_degree": self._graph.out_degree(node_id)
+        }
+
     def close(self) -> None:
         """No-op for in-memory storage."""
         pass

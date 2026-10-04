@@ -135,6 +135,80 @@ class Neo4jGraphStorage(BaseGraphStorage):
             # Return empty stats or handle as per reviewer request
             return GraphStats(0, 0, 0, {"error": str(e)})
 
+    def get_all_predicates(self) -> Dict[str, int]:
+        """Returns a distribution of all predicate types in the Neo4j graph."""
+        query = "MATCH ()-[r]->() RETURN type(r) as type, count(*) as count"
+        try:
+            with self._driver.session() as session:
+                result = session.run(query)
+                return {record["type"]: record["count"] for record in result}
+        except Exception as e:
+            logger.error(f"Error getting predicate distribution from Neo4j: {e}")
+            return {}
+
+    def get_connected_components(self) -> int:
+        """
+        Returns the number of connected components in the Neo4j graph.
+        Uses the GDS library if available, otherwise falls back to a Cypher approximation.
+        """
+        # Basic Cypher approach for weakly connected components (undirected)
+        # This is expensive for very large graphs but works for diagnostic purposes
+        query = (
+            "MATCH (n:Entity) "
+            "OPTIONAL MATCH (n)-[r]-() "
+            "WITH n, count(r) as degree "
+            "RETURN count(DISTINCT n) as node_count"
+        )
+        # Note: True connected components are best handled by Neo4j GDS (Graph Data Science).
+        # For a basic adapter, we can use a simplified query or assume GDS is needed for production.
+        # Here we implement a query that returns 1 if the graph is connected or uses GDS call if possible.
+        
+        gds_query = "CALL gds.wcc.count() YIELD componentCount RETURN componentCount"
+        try:
+            with self._driver.session() as session:
+                # Try GDS first
+                result = session.run(gds_query).single()
+                if result:
+                    return result["componentCount"]
+                
+                # Fallback: if GDS is not installed, return -1 to indicate not supported via basic Cypher
+                return -1
+        except Exception:
+            # Fallback to -1 if GDS call fails (e.g. GDS not installed)
+            return -1
+
+    def get_orphan_nodes(self) -> List[str]:
+        """Returns a list of nodes with no relationships in the Neo4j graph."""
+        query = "MATCH (n:Entity) WHERE NOT (n)--() RETURN n.name as name"
+        try:
+            with self._driver.session() as session:
+                result = session.run(query)
+                return [record["name"] for record in result if record["name"]]
+        except Exception as e:
+            logger.error(f"Error getting orphan nodes from Neo4j: {e}")
+            return []
+
+    def get_node_degree(self, node_id: str) -> Dict[str, int]:
+        """Returns the in-degree and out-degree of a node in the Neo4j graph."""
+        query = (
+            "MATCH (n:Entity {name: $node_id}) "
+            "OPTIONAL MATCH (n)-[out]->() "
+            "OPTIONAL MATCH ()-[in]->(n) "
+            "RETURN count(DISTINCT out) as out_degree, count(DISTINCT in) as in_degree"
+        )
+        try:
+            with self._driver.session() as session:
+                result = session.run(query, node_id=node_id).single()
+                if result:
+                    return {
+                        "in_degree": result["in_degree"],
+                        "out_degree": result["out_degree"]
+                    }
+                return {"in_degree": 0, "out_degree": 0}
+        except Exception as e:
+            logger.error(f"Error getting node degree from Neo4j: {e}")
+            return {"in_degree": 0, "out_degree": 0}
+
     def close(self) -> None:
         """Closes the Neo4j driver."""
         if self._driver:

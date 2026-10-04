@@ -201,7 +201,8 @@ TASKS = {
         "description": "Implement graph query tools to inspect node degrees, connected components, and relationship types.",
         "target_files": [
             "rag_builder/storage/inspector.py",
-            "tests/test_storage.py"
+            "tests/test_storage.py",
+            "tests/test_inspector.py"
         ],
         "acceptance_criteria": [
             "Diagnostic CLI commands to check graph health and node counts",

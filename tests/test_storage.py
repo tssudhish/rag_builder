@@ -1,6 +1,7 @@
 import pytest
 import logging
 from rag_builder.storage import Triplet, MemoryGraphStorage, Neo4jGraphStorage
+from rag_builder.storage.inspector import GraphInspector
 
 # Setup logging for tests to see output
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +32,33 @@ def test_memory_storage_basic():
     assert ("TechCorp", "located_in", "New York") in neighbors_2
     assert len(neighbors_2) == 2
 
+def test_memory_storage_diagnostics():
+    storage = MemoryGraphStorage()
+    # Component 1: A -> B
+    storage.insert_triplet(Triplet("A", "rel", "B"))
+    # Component 2: C (orphan) - To create an orphan in MemoryGraphStorage, 
+    # we can't use insert_triplet because it creates an edge.
+    # But we can access the internal graph for test setup.
+    storage._graph.add_node("C")
+    
+    assert storage.get_connected_components() == 2
+    assert "C" in storage.get_orphan_nodes()
+    assert len(storage.get_orphan_nodes()) == 1
+    
+    degree_a = storage.get_node_degree("A")
+    assert degree_a["out_degree"] == 1
+    assert degree_a["in_degree"] == 0
+    
+    degree_b = storage.get_node_degree("B")
+    assert degree_b["in_degree"] == 1
+    assert degree_b["out_degree"] == 0
+    
+    degree_c = storage.get_node_degree("C")
+    assert degree_c["in_degree"] == 0
+    assert degree_c["out_degree"] == 0
+
 def test_memory_storage_direction():
+
     storage = MemoryGraphStorage()
     storage.insert_triplet(Triplet("A", "rel", "B"))
     
