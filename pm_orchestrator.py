@@ -218,7 +218,9 @@ TASKS = {
         "target_files": [
             "rag_builder/api/__init__.py",
             "rag_builder/api/main.py",
-            "rag_builder/api/routes.py"
+            "rag_builder/api/routes.py",
+            "rag_builder/api/state.py",
+            "tests/test_api.py"
         ],
         "acceptance_criteria": [
             "POST /api/documents upload endpoint with background processing",
