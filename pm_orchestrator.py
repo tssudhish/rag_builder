@@ -187,7 +187,8 @@ TASKS = {
         "description": "Build ingestion pipeline from extracted triplets to graph database with deduplication and vector embeddings.",
         "target_files": [
             "rag_builder/storage/pipeline.py",
-            "rag_builder/storage/vector_index.py"
+            "rag_builder/storage/vector_index.py",
+            "tests/test_pipeline.py"
         ],
         "acceptance_criteria": [
             "Batched ingestion of triplets into graph nodes and directed edges",

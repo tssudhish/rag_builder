@@ -43,7 +43,7 @@ This system pairs a high-level **Project Manager (PM)** supervisory agent with l
 
 | Agent Name | Engine / Model | Role & Permissions |
 | :--- | :--- | :--- |
-| **`project_manager`** | Gemini 3.7 / Antigravity | Orchestrates phases, specifies technical requirements, monitors git progress, and ensures adherence to [ARCHITECTURE.md](file:///c:/Users/tssud/code/rag_builder/ARCHITECTURE.md). |
+| **`project_manager`** | Gemini 3.7 / Antigravity | Orchestrates phases, specifies technical requirements, monitors git progress, and ensures adherence to [ARCHITECTURE.md](file:///c:/Users/<username>/code/rag_builder/ARCHITECTURE.md). |
 | **`coder`** | OpenCode (`ollama/gemma4:31b-cloud`) | Primary implementation agent. Generates files, edits code, installs packages, runs scripts. |
 | **`reviewer`** | Ollama (`gemma4:31b-cloud`) | Autonomous code reviewer. Analyzes git diffs for bugs, schema mismatches, type hints, and code smell. |
 | **`tester`** | Ollama (`gemma4:31b-cloud`) | Generates test cases, configures test runners (e.g. `pytest`/`unittest`), and verifies test execution. |
@@ -53,17 +53,17 @@ This system pairs a high-level **Project Manager (PM)** supervisory agent with l
 
 ## 3. Configuration Details
 
-- **Ollama Location**: `C:\Users\tssud\AppData\Local\Programs\Ollama\ollama.exe`
-- **Models Root**: `C:\Users\tssud\.ollama\models`
+- **Ollama Location**: `C:\Users\<username>\AppData\Local\Programs\Ollama\ollama.exe`
+- **Models Root**: `C:\Users\<username>\.ollama\models`
 - **Active Ollama Server**: `http://localhost:11434`
-- **OpenCode Config**: [opencode.json](file:///c:/Users/tssud/code/rag_builder/opencode.json) in workspace root.
-- **Python Environment**: `D:\Users\tssud\miniconda3\python.exe`
+- **OpenCode Config**: [opencode.json](file:///c:/Users/<username>/code/rag_builder/opencode.json) in workspace root.
+- **Python Environment**: `D:\Users\<username>\miniconda3\python.exe`
 
 ---
 
 ## 4. Operational Workflow (DevOps Loop)
 
-For every task defined in [ROADMAP.md](file:///c:/Users/tssud/code/rag_builder/ROADMAP.md):
+For every task defined in [ROADMAP.md](file:///c:/Users/<username>/code/rag_builder/ROADMAP.md):
 
 1. **Prompt Generation**:
    The Project Manager generates a formal **Work Packet** specifying:
