@@ -317,7 +317,7 @@ def run_opencode_task(task_id, auto_approve=True):
     print(f"\n[Project Manager] Dispatching {task_id} to Ollama coder agent...")
     print(f"[Command] {' '.join(cmd[:5])} ...")
 
-    result = subprocess.run(cmd, cwd=str(WORKSPACE))
+    result = subprocess.run(cmd, cwd=str(WORKSPACE), stdin=subprocess.DEVNULL)
     return result.returncode == 0
 
 
@@ -326,6 +326,18 @@ def run_local_review(task_id):
     task = TASKS[task_id]
     git_diff = subprocess.run(["git", "diff"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
     untracked = subprocess.run(["git", "status", "--short"], cwd=str(WORKSPACE), capture_output=True, text=True).stdout
+
+    files_content = []
+    for fpath_str in task["target_files"]:
+        fpath = WORKSPACE / fpath_str
+        if fpath.exists():
+            try:
+                content = fpath.read_text(encoding="utf-8")
+                files_content.append(f"=== File: {fpath_str} ===\n{content}\n")
+            except Exception as e:
+                files_content.append(f"=== File: {fpath_str} (error: {e}) ===\n")
+
+    code_payload = "\n".join(files_content)
 
     system_prompt = (
         "You are 'reviewer', an expert senior code reviewer. You evaluate code against "
@@ -337,7 +349,8 @@ def run_local_review(task_id):
         f"Review work for Task {task_id}: {task['title']}.\n"
         f"Acceptance Criteria:\n" + "\n".join(f"- {c}" for c in task["acceptance_criteria"]) + "\n\n"
         f"Current Git Status:\n{untracked}\n\n"
-        f"Git Diff:\n{git_diff[:8000] if git_diff else 'No modifications in tracked files yet. Check new files.'}\n"
+        f"Source Code Submitted:\n{code_payload}\n\n"
+        f"Git Diff:\n{git_diff[:4000] if git_diff else 'None'}\n"
     )
 
     print(f"\n[Project Manager] Invoking local Ollama code reviewer on {task_id}...")
