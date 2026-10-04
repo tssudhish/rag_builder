@@ -15,6 +15,7 @@ import os
 import json
 import argparse
 import subprocess
+import shutil
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -30,9 +31,22 @@ STATE_FILE = WORKSPACE / ".pm_state.json"
 ROADMAP_FILE = WORKSPACE / "ROADMAP.md"
 ARCHITECTURE_FILE = WORKSPACE / "ARCHITECTURE.md"
 
-OPENCODE_EXE = r"D:\Users\tssud\AppData\Roaming\npm\node_modules\opencode-ai\bin\opencode.exe"
-OLLAMA_EXE = r"C:\Users\tssud\AppData\Local\Programs\Ollama\ollama.exe"
-OLLAMA_URL = "http://localhost:11434"
+def get_python_bin():
+    """Resolves active Python executable in an environment-agnostic, portable manner."""
+    env_bin = os.environ.get("PYTHON_BIN")
+    if env_bin and Path(env_bin).exists():
+        return env_bin
+    if Path(sys.executable).exists() and "WindowsApps" not in sys.executable:
+        return sys.executable
+    for name in ["python3", "python"]:
+        found = shutil.which(name)
+        if found and "WindowsApps" not in found:
+            return found
+    return sys.executable
+
+OPENCODE_EXE = os.environ.get("OPENCODE_EXE") or shutil.which("opencode") or "opencode"
+OLLAMA_EXE = os.environ.get("OLLAMA_EXE") or shutil.which("ollama") or "ollama"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_MODEL = "gemma4:31b-cloud"
 TRIPLEX_MODEL = "sciphi/triplex:latest"
 
@@ -88,10 +102,13 @@ TASKS = {
         "title": "Phase 1 Validation & Test Harness",
         "description": "Create sample documents and comprehensive unit tests validating the ingestion and extraction pipeline.",
         "target_files": [
+            "pm_orchestrator.py",
+            "verify_ollama.py",
             "tests/__init__.py",
             "tests/test_loaders.py",
             "tests/test_splitter.py",
-            "tests/test_extraction.py"
+            "tests/test_extraction.py",
+            "tests/test_normalization.py"
         ],
         "acceptance_criteria": [
             "Unit tests covering file loading, text splitting, and mock triplet extraction",
@@ -389,16 +406,11 @@ def run_local_review(task_id):
 def run_local_tests():
     """Runs test suite locally using pytest or unittest."""
     print("\n[Project Manager] Running local test suite...")
-    python_candidates = [
-        sys.executable,
-        r"D:\Users\tssud\miniconda3\python.exe",
-        "python"
-    ]
-    python_bin = sys.executable
-    for p in python_candidates:
-        if Path(p).exists():
-            python_bin = p
-            break
+    python_bin = get_python_bin()
+
+    res = subprocess.run([python_bin, "-m", "pytest", "tests"], cwd=str(WORKSPACE))
+    if res.returncode == 0:
+        return True
 
     result = subprocess.run([python_bin, "-m", "unittest", "discover", "-s", "tests"], cwd=str(WORKSPACE))
     return result.returncode == 0

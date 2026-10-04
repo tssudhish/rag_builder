@@ -1,1 +1,1 @@
-# Test suite for rag_builder
+# Tests package initializer

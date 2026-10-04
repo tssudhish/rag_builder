@@ -1,0 +1,5 @@
+This is a sample text file.
+It contains several sentences to test the loaders and the splitter.
+The quick brown fox jumps over the lazy dog.
+Artificial Intelligence is transforming the world.
+Python is a versatile programming language.

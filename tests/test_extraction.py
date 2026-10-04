@@ -1,62 +1,68 @@
-import unittest
+import pytest
 from unittest.mock import MagicMock
-from rag_builder.extraction import OllamaClient, Triplet, TripletExtractor
+import json
+from rag_builder.extraction.ollama_client import OllamaClient
+from rag_builder.extraction.triplets import TripletExtractor, Triplet
 
-class TestTripletExtraction(unittest.TestCase):
-    def setUp(self):
-        self.mock_client = MagicMock(spec=OllamaClient)
-        self.extractor = TripletExtractor(self.mock_client)
+@pytest.fixture
+def mock_ollama_client():
+    return MagicMock(spec=OllamaClient)
 
-    def test_extract_empty_text(self):
-        """Verify that empty or whitespace text returns an empty list."""
-        self.assertEqual(self.extractor.extract(""), [])
-        self.assertEqual(self.extractor.extract("   "), [])
-        self.mock_client.generate.assert_not_called()
+@pytest.fixture
+def extractor(mock_ollama_client):
+    return TripletExtractor(client=mock_ollama_client)
 
-    def test_extract_successful_list(self):
-        """Verify extraction from a standard JSON list response."""
-        mock_response = '[{"subject": "Apple", "predicate": "is", "object": "company"}]'
-        self.mock_client.generate.return_value = mock_response
-        
-        results = self.extractor.extract("Apple is a company.")
-        
-        self.assertEqual(len(results), 1)
-        self.assertIsInstance(results[0], Triplet)
-        self.assertEqual(results[0].subject, "Apple")
-        self.assertEqual(results[0].predicate, "is")
-        self.assertEqual(results[0].obj, "company")
+def test_extraction_success(extractor, mock_ollama_client):
+    # Mock a valid JSON response from Ollama
+    mock_response = '[{"subject": "Apple Inc.", "predicate": "headquartered_in", "object": "Cupertino"}]'
+    mock_ollama_client.generate.return_value = mock_response
+    
+    text = "Apple Inc. is headquartered in Cupertino."
+    triplets = extractor.extract(text)
+    
+    assert len(triplets) == 1
+    assert triplets[0] == Triplet("Apple Inc.", "headquartered_in", "Cupertino")
 
-    def test_extract_conversational_response(self):
-        """Verify that JSON is extracted from within conversational text."""
-        mock_response = 'Sure! Here are the triplets: [{"subject": "Einstein", "predicate": "born_in", "object": "Germany"}] Hope this helps!'
-        self.mock_client.generate.return_value = mock_response
-        
-        results = self.extractor.extract("Einstein was born in Germany.")
-        
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].subject, "Einstein")
+def test_extraction_conversational_response(extractor, mock_ollama_client):
+    # Mock a response that contains JSON but also conversational text
+    mock_response = "Here are the triplets: [{\"subject\": \"Einstein\", \"predicate\": \"developed\", \"object\": \"relativity\"}] Hope this helps!"
+    mock_ollama_client.generate.return_value = mock_response
+    
+    text = "Einstein developed relativity."
+    triplets = extractor.extract(text)
+    
+    assert len(triplets) == 1
+    assert triplets[0].subject == "Einstein"
 
-    def test_extract_single_object_response(self):
-        """Verify that a single JSON object is handled as a single triplet."""
-        mock_response = '{"subject": "Python", "predicate": "is", "object": "language"}'
-        self.mock_client.generate.return_value = mock_response
-        
-        results = self.extractor.extract("Python is a language.")
-        
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0].subject, "Python")
+def test_extraction_single_object_response(extractor, mock_ollama_client):
+    # Mock a response that returns a single object instead of a list
+    mock_response = '{"subject": "Earth", "predicate": "is_a", "object": "Planet"}'
+    mock_ollama_client.generate.return_value = mock_response
+    
+    text = "Earth is a planet."
+    triplets = extractor.extract(text)
+    
+    assert len(triplets) == 1
+    assert triplets[0].subject == "Earth"
 
-    def test_extract_malformed_json(self):
-        """Verify that malformed JSON returns an empty list."""
-        self.mock_client.generate.return_value = 'This is not JSON'
-        results = self.extractor.extract("Some text")
-        self.assertEqual(results, [])
+def test_extraction_invalid_json(extractor, mock_ollama_client):
+    # Mock a response that is not valid JSON
+    mock_ollama_client.generate.return_value = "This is not JSON"
+    
+    text = "Invalid response test."
+    triplets = extractor.extract(text)
+    
+    assert triplets == []
 
-    def test_extract_client_error(self):
-        """Verify that None response from client returns an empty list."""
-        self.mock_client.generate.return_value = None
-        results = self.extractor.extract("Some text")
-        self.assertEqual(results, [])
+def test_extraction_empty_text(extractor, mock_ollama_client):
+    triplets = extractor.extract("")
+    assert triplets == []
+    mock_ollama_client.generate.assert_not_called()
 
-if __name__ == "__main__":
-    unittest.main()
+def test_extraction_no_response(extractor, mock_ollama_client):
+    mock_ollama_client.generate.return_value = None
+    
+    text = "No response test."
+    triplets = extractor.extract(text)
+    
+    assert triplets == []

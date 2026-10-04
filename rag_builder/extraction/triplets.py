@@ -16,6 +16,10 @@ class Triplet:
     predicate: str
     obj: str
 
+    @property
+    def object(self) -> str:
+        return self.obj
+
     def to_dict(self) -> dict:
         return {"subject": self.subject, "predicate": self.predicate, "object": self.obj}
 
