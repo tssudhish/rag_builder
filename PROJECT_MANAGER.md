@@ -53,8 +53,8 @@ This system pairs a high-level **Project Manager (PM)** supervisory agent with l
 
 ## 3. Configuration Details
 
-- **Ollama Location**: `C:\Users\<username>\AppData\Local\Programs\Ollama\ollama.exe`
-- **Models Root**: `C:\Users\<username>\.ollama\models`
+- **Ollama Location**: `D:\Programs\Ollama\ollama.exe` (Junction: `C:\Users\<username>\AppData\Local\Programs\Ollama`)
+- **Models Root**: `D:\ollama\models` (Junction: `C:\Users\<username>\.ollama\models`)
 - **Active Ollama Server**: `http://localhost:11434`
 - **OpenCode Config**: [opencode.json](file:///c:/Users/<username>/code/rag_builder/opencode.json) in workspace root.
 - **Python Environment**: `D:\Users\<username>\miniconda3\python.exe`
