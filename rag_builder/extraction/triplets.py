@@ -27,7 +27,7 @@ class TripletExtractor:
     """
     Extracts (Subject, Predicate, Object) triplets from text using an LLM.
     """
-    def __init__(self, client: OllamaClient, model: str = "sciphi-triplex"):
+    def __init__(self, client: OllamaClient, model: str = "sciphi/triplex:latest"):
         self.client = client
         self.model = model
 

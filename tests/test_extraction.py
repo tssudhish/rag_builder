@@ -66,3 +66,71 @@ def test_extraction_no_response(extractor, mock_ollama_client):
     triplets = extractor.extract(text)
     
     assert triplets == []
+
+
+def test_ollama_client_url_normalization():
+    # Test trailing slash stripping and /api/generate stripping
+    client1 = OllamaClient("http://localhost:11434/")
+    assert client1.base_url == "http://localhost:11434"
+
+    client2 = OllamaClient("http://localhost:11434/api/generate")
+    assert client2.base_url == "http://localhost:11434"
+
+    client3 = OllamaClient("http://localhost:11434/api/")
+    assert client3.base_url == "http://localhost:11434"
+
+
+def test_ollama_client_model_resolution():
+    client = OllamaClient()
+    assert client.resolve_model("sciphi-triplex") == "sciphi/triplex:latest"
+    assert client.resolve_model("sciphi/triplex") == "sciphi/triplex:latest"
+    assert client.resolve_model("custom-model") == "custom-model"
+
+
+def test_ollama_client_generate_success(monkeypatch):
+    client = OllamaClient()
+    
+    class MockResponse:
+        status_code = 200
+        def json(self):
+            return {"response": '{"subject": "A", "predicate": "B", "object": "C"}'}
+        def raise_for_status(self):
+            pass
+
+    monkeypatch.setattr("requests.post", lambda url, json, timeout: MockResponse())
+    
+    result = client.generate("sciphi-triplex", "test prompt")
+    assert result == '{"subject": "A", "predicate": "B", "object": "C"}'
+
+
+def test_ollama_client_404_fallback(monkeypatch):
+    client = OllamaClient()
+
+    # Simulate /api/tags returning installed models
+    class MockTagsResponse:
+        status_code = 200
+        def json(self):
+            return {"models": [{"name": "sciphi/triplex:latest"}]}
+
+    monkeypatch.setattr("requests.get", lambda url, timeout: MockTagsResponse())
+
+    call_count = {"count": 0}
+    def mock_post(url, json, timeout):
+        call_count["count"] += 1
+        if json.get("model") == "unknown-model":
+            class Mock404:
+                status_code = 404
+                text = '{"error": "model not found"}'
+            return Mock404()
+        class Mock200:
+            status_code = 200
+            def json(self):
+                return {"response": "fallback success"}
+        return Mock200()
+
+    monkeypatch.setattr("requests.post", mock_post)
+
+    # unknown-model should fail and return None
+    res = client.generate("unknown-model", "test")
+    assert res is None
+

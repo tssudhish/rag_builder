@@ -1,7 +1,14 @@
 {
-  "current_phase": 5,
-  "active_task": null,
+  "current_phase": 2,
+  "active_task": "task_2_1",
   "tasks": {
+    "task_fix_ollama": {
+      "status": "completed",
+      "reviews": [
+        "The changes in the code focus on refactoring and improving the functionality of the `OllamaClient` class in the `rag_builder/extraction/ollama_client.py` file. The main improvements include:\n\n1. **Model Resolution**: The `OllamaClient` now maps model names like \"sciphi-triplex\" to \"sciphi/triplex:latest\" and queries the `/api/tags` endpoint for available models when a 404 model not found occurs. This helps in handling unknown or incorrect model names gracefully and ensures consistency in the model names used throughout the system.\n\n2. **URL Normalization**: The `OllamaClient` normalizes the base URL by stripping trailing slashes and \"/api/generate\" to ensure consistent and predictable behavior.\n\n3. **Error Handling**: The `OllamaClient` now logs response bodies on HTTP errors (such as 404 model not found) for clear diagnosis and provides better error messages.\n\n4. **Model Defaults**: The default extraction models have been updated to \"sciphi/triplex:latest\", ensuring that the system defaults to a reliable model.\n\n5. **Unit Tests**: The unit tests in `tests/test_extraction.py` have been updated to cover model resolution, URL normalization, and 404 error handling, ensuring the client's functionality is thoroughly tested."
+      ],
+      "tests": []
+    },
     "task_1_1": {
       "status": "completed",
       "reviews": [

@@ -162,6 +162,24 @@ TASKS = {
             "Verification script that tests Ollama connectivity and triplet generation on sample text"
         ]
     },
+    "task_fix_ollama": {
+        "phase": 1,
+        "title": "Fix Ollama 404 Model Resolution & Client URL Handling",
+        "description": "Fix Ollama API 404 Client Error for /api/generate by dynamically resolving model names (mapping 'sciphi-triplex' to 'sciphi/triplex:latest' or checking /api/tags), safely normalizing base_url (stripping trailing /api/generate or slashes), improving error logs to show response body on failure, and updating default extraction models to 'sciphi/triplex:latest'.",
+        "target_files": [
+            "rag_builder/extraction/ollama_client.py",
+            "rag_builder/extraction/triplets.py",
+            "rag_builder/cli.py",
+            "tests/test_extraction.py"
+        ],
+        "acceptance_criteria": [
+            "OllamaClient normalizes base_url by stripping trailing slashes and /api/generate",
+            "OllamaClient maps model names like 'sciphi-triplex' to 'sciphi/triplex:latest' and queries /api/tags for available models when a 404 model not found occurs",
+            "OllamaClient logs response body on HTTP errors (such as 404 model not found) for clear diagnosis",
+            "TripletExtractor and cli.py defaults align with 'sciphi/triplex:latest'",
+            "Unit tests cover model resolution, URL normalization, and 404 error handling in test_extraction.py"
+        ]
+    },
 
     # Phase 2: Graph Storage & Schema
     "task_2_1": {

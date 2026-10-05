@@ -94,7 +94,7 @@ def main():
     # Build command
     build_parser = subparsers.add_parser("build", help="Build a KG from a file")
     build_parser.add_argument("--file", required=True, help="Path to the source document")
-    build_parser.add_argument("--model", default="sciphi-triplex", help="Model for extraction")
+    build_parser.add_argument("--model", default="sciphi/triplex:latest", help="Model for extraction")
     build_parser.add_argument("--save", help="Path to save the resulting graph JSON")
 
     # Query command
@@ -127,7 +127,7 @@ def main():
                 storage.import_json(args.load)
             elif args.file:
                 logger.info(f"Building temporary graph from {args.file}...")
-                storage = build_graph(args.file, "sciphi-triplex")
+                storage = build_graph(args.file, "sciphi/triplex:latest")
             else:
                 logger.error("Either --load or --file must be provided for query.")
                 sys.exit(1)
